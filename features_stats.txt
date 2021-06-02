@@ -1,0 +1,17 @@
+belongs_to_collection
+different ids count: 533
+there are 0 ids with different values
+
+genres
+different ids count: 19
+there are 0 ids with different values
+
+production_companies
+different ids count: 4318
+there are 0 ids with different values
+
+keywords
+different ids count: 8021
+there are 0 ids with different values
+
+shape after make dummies: (3395, 4874)
