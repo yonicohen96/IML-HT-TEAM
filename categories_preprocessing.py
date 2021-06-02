@@ -10,8 +10,8 @@ def preprocess_original_language(data):
     # creating a row for every language with more than 30 movies:
     LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
 
-    languages = train["original_language"].unique()
-    languages_count = train["original_language"].value_counts()
+    languages = data["original_language"].unique()
+    languages_count = data["original_language"].value_counts()
     languages = np.column_stack((languages, languages_count))
 
     lang_data = pd.get_dummies(data.original_language)
@@ -25,3 +25,7 @@ def preprocess_original_language(data):
     data = data.drop(columns=["original_language"])
 
     return data
+
+
+def preprocess_status(data):
+    return data.drop((data[data["status"] != "Released"]).index)
