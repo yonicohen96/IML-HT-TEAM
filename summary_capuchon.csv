@@ -1,0 +1,12 @@
+,id,belongs_to_collection,budget,genres,homepage,original_language,original_title,overview,vote_average,vote_count,production_companies,production_countries,release_date,runtime,spoken_languages,status,tagline,title,keywords,cast,crew,revenue
+count,3395.0,707,3395.0,3395,1133,3395,3395,3384,3395.0,3395.0,3395,3395,3379,3385.0,3395,3395,2766,3395,3374,3374,3374,3395.0
+unique,,533,,990,1130,43,3394,3384,,,2785,390,2710,,415,5,2764,3394,3029,3344,3352,
+top,,"{'id': 645, 'name': 'James Bond Collection'}",,"[{'id': 18, 'name': 'Drama'}]",http://www.munkyourself.com/,en,Pinocchio,"Over the course of five social occasions, a committed bachelor must consider the notion that he may have discovered love.",,,[],"[{'iso_3166_1': 'US', 'name': 'United States of America'}]",20/10/1995,,"[{'english_name': 'English', 'iso_639_1': 'en', 'name': 'English'}]",Released,Who is John Galt?,Pinocchio,[],[],[],
+freq,,11,,244,2,2937,2,1,,,147,2017,6,,2143,3383,2,2,303,31,22,
+mean,2811.5505154639177,,21435580.78556701,,,,,,6.296789396170851,1272.6097201767304,,,,105.70871491875923,,,,,,,,62196257.866863035
+std,1640.4738968937231,,34735049.317653194,,,,,,1.2016482253142144,2370.228462907264,,,,23.080832320344292,,,,,,,,126497474.9418498
+min,1.0,,0.0,,,,,,0.0,0.0,,,,0.0,,,,,,,,0.0
+25%,1403.5,,0.0,,,,,,5.8,95.0,,,,93.0,,,,,,,,1500000.0
+50%,2782.0,,7000000.0,,,,,,6.4,392.0,,,,103.0,,,,,,,,14400000.0
+75%,4252.0,,27000000.0,,,,,,7.0,1280.0,,,,116.0,,,,,,,,63170241.0
+max,5659.0,,258000000.0,,,,,,10.0,25144.0,,,,233.0,,,,,,,,1153296293.0
