@@ -2,6 +2,7 @@ from models import *
 from preprocess import preprocess_main
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 import matplotlib.pyplot as plt
@@ -33,7 +34,14 @@ if __name__ == '__main__':
     best_vote_score = baseline(x_train, x_validate, y_vote_train, y_vote_validate)
     best_revenue_model = baseline
     best_vote_model = baseline
-    models = [lasso, ridge, forest]
+    lasso_alpha_rev, ridge_alpha_rev = find_alpha_for_lasso_ridge(x_train, y_revenue_train, x_validate, y_revenue_validate)
+    lasso_alpha_vote, ridge_alpha_vote = find_alpha_for_lasso_ridge(x_train, y_vote_train, x_validate, y_vote_validate)
+    best_tree_depth(x_train, x_validate, y_revenue_train, y_revenue_validate) # create graph to choose the params
+    best_tree_depth(x_train, x_validate, y_vote_train, y_vote_validate)  # create graph to choose the params
+    forest_revenue_k, forest_revenue_T = 10, 10
+    forest_vote_k, forest_vote_T = 10, 10
+    models = [Lasso(lasso_alpha_rev), Lasso(alpha=lasso_alpha_vote, max_iter=10000, tol=0.1),
+              ridge, forest]
     for m in models:
         cur_revenue = m(x_train, x_validate, y_revenue_train, y_revenue_validate)
         cur_vote = m(x_train, x_validate, y_vote_train, y_vote_validate)
