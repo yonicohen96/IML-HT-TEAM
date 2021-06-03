@@ -1,8 +1,10 @@
+import numpy as np
 import pandas as pd
-import ast
 from sklearn.preprocessing import MultiLabelBinarizer
+import json
+import re
 
-
+"""
 def check_dict(dict, id_name, value_name, res):
     if dict[id_name] in res:
         res[dict[id_name]].add(dict[value_name])
@@ -45,9 +47,12 @@ def check_all_dicts(data):
     check_list_id_value(data["genres"], "id", "name", "genres")
     check_list_id_value(data["production_companies"], "id", "name", "production_companies")
     check_list_id_value(data["keywords"], "id", "name", "keywords")
+"""
 
 
 def add_multi_dummies(data, col_name):
+    data.loc[data[col_name].isna(), col_name] = "Unclassified"
+    #col = data[col_name].dropna()
     mlb = MultiLabelBinarizer()
     encoded = mlb.fit_transform(data[col_name])
     names = [col_name + "_" + name for name in mlb.classes_]
@@ -63,44 +68,105 @@ def add_dummy(data, col_name):
     return data
 
 
-def make_dummies(data):
+def make_nan(data, columns):
+    for col in columns:
+        data.loc[data[col] == "[]", [col]] = np.math.nan
+    return data
+
+
+def validate_single_dict(s):
+    pattern = r'{(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")),)*(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")))}'
+    check = re.compile(pattern)
+    if check.match(s) is None:
+        return False
+    return True
+
+
+def validate_multi_dict(s):
+    pattern = r'\[({(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")),)*(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")))},\s*)*({(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")),)*(\s*("[^"]*":)((\s*\d*)|(\s"[^"]*")))})\]'
+    check = re.compile(pattern)
+    if check.match(s) is None:
+        return False
+    return True
+
+
+def parser_col_single(data, col_name):
+    col_df = data[col_name].dropna()
+    col_df = col_df[col_df.notnull()]
+    col_df = col_df.apply(lambda s: str(s).replace('\'', '"'))
+    for index, cell in col_df.items():
+        if validate_single_dict(cell):
+            try:
+                data.at[index, col_name] = json.loads(cell)
+            except:
+                data.at[index, col_name] = np.nan
+        else:
+            data.at[index, col_name] = np.nan
+    return data
+
+
+def parser_col_multi(data, col_name):
+    col_df = data[col_name].dropna()
+    col_df = col_df[col_df.notnull()]
+    col_df = col_df.apply(lambda s: str(s).replace('\'', '"'))
+    for index, cell in col_df.items():
+        if validate_multi_dict(cell):
+            try:
+                data.at[index, col_name] = json.loads(cell)
+            except:
+                data.at[index, col_name] = np.nan
+        else:
+            data.at[index, col_name] = np.nan
+    return data
+
+
+def parser_dicts(data):
+    cols1 = ["belongs_to_collection"]
+    cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
+    data = make_nan(data, cols1 + cols2)
+    for col in cols1:
+        data = parser_col_single(data, col)
+    for col in cols2:
+        data = parser_col_multi(data, col)
+    only_names = ["belongs_to_collection", "genres", "keywords"]
+    for col in only_names:
+        data = names_list(data, col)
     data = add_dummy(data, "belongs_to_collection")
     data = add_multi_dummies(data, "genres")
-    data = add_multi_dummies(data, "production_companies")
-    #data = add_multi_dummies(data, "keywords")
+    data = add_multi_dummies(data, "keywords")
+
     return data
 
 
-def help1(data, col_name):
-    col = data[col_name].dropna()
-    for index, row in col.items():
-        x = ast.literal_eval(row)
-        data.at[index, col_name] = x["name"]
-    return data
-
-
-def help2(data, col_name):
-    col = data[col_name].dropna()
-    for index, row in col.items():
-        x = ast.literal_eval(row)
-        lst = list()
-        for d in x:
-            lst.append(d["name"])
-        data.at[index, col_name] = lst
-    return data
-
-
-def make_lists(data):
-    data = help1(data, "belongs_to_collection")
-    data = help2(data, "genres")
-    data = help2(data, "production_companies")
-    data = help2(data, "keywords")
+def names_list(data, col_name):
+    for index, cell in data[col_name].items():
+        if type(cell) == dict:
+            data.at[index, col_name] = cell["name"]
+        elif type(cell) == list:
+            lst = list()
+            for d in cell:
+                lst.append(d["name"])
+            data.at[index, col_name] = lst
+        else:
+            data.at[index, col_name] = np.math.nan
     return data
 
 
 if __name__ == '__main__':
     data = pd.read_csv(r"train_capuchon.csv")
-    check_all_dicts(data)
-    data = make_lists(data)
-    data = make_dummies(data)
+    data = parser_dicts(data)
+    # for cell in data["genres"]:
+    #     if type(cell) == str:
+    #         print(cell)
+    #     elif type(cell) == list:
+    #         print(cell)
+    #parser(data, cols)
+    #data = remove_chars(data, cols)
+    #data = make_nan(data, cols)
+    #check_all_dicts(data)
+    #data = make_lists(data)
+    # data["genres"].value_counts().to_csv("raz_check2.csv")
+    # print(data["genres"].value_counts())
+    # print(data["genres"].isna().sum())
+    #data = make_dummies(data)
     print("shape after make dummies: " + str(data.shape))
