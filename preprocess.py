@@ -26,15 +26,24 @@ LEADING_30_COLLECTION = ['James Bond Collection', 'Friday the 13th Collection', 
                          'The Dark Knight Collection', 'American Pie Collection', 'Hellraiser Collection']
 DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
                "title", "keywords", "cast", "crew"]
+GENRES_COLS = ['genres_Action', 'genres_Adventure', 'genres_Animation', 'genres_Comedy', 'genres_Crime',
+               'genres_Documentary', 'genres_Drama', 'genres_Family', 'genres_Fantasy', 'genres_History',
+               'genres_Horror', 'genres_Music', 'genres_Mystery', 'genres_Romance', 'genres_Science Fiction',
+               'genres_TV Movie', 'genres_Thriller', 'genres_War', 'genres_Western', 'genres_e', 'genres_h', 'genres_o',
+               'genres_r', 'genres_s', 'genres_t']
 
 # Raz
 def add_genres(data, col_name):
-    data.loc[data[col_name].isna(), col_name] = "Unclassified"
+    data.loc[data[col_name].isna(), col_name] = "others"
     mlb = MultiLabelBinarizer()
     encoded = mlb.fit_transform(data[col_name])
     names = [col_name + "_" + name for name in mlb.classes_]
-    np.savetxt(r"\data\genres_features.csv", np.asarray(names), delimiter=",")
+    print(names)
+    #np.savetxt(r"data\genres_features.csv", names, delimiter=",")
     data = pd.concat([data, pd.DataFrame(encoded, columns=names, index=data.index)], axis=1)
+    if "others" not in mlb.classes_:
+        new_name = col_name + "_others"
+        data[new_name] = np.zeros(data.shape[0])
     data = data.drop([col_name], axis=1)
     return data
 
@@ -156,34 +165,32 @@ def pre_belongs_to_collection(data):
     for index, cell in data["belongs_to_collection"].items():
         if type(cell) != str:
             data.at[index, others] = 1
-        new_name = "belongs_to_collection_" + cell
-        if new_name in data.columns:
-            data.at[index, new_name] = 1
         else:
-            data.at[index, others] = 1
+            new_name = "belongs_to_collection_" + cell
+            if new_name in data.columns:
+                data.at[index, new_name] = 1
+            else:
+                data.at[index, others] = 1
     data = data.drop(["belongs_to_collection"], axis=1)
     return data
 
 
 # Neria
 def preprocess_original_language(data):
-    # creating a row for every language with more than 30 movies:
+    # creating a row for every important language:
+    important_languages = ["en", "fr", "hi", "es", "ru", "ja"]
     languages = data["original_language"].unique()
     languages_count = data["original_language"].value_counts()
     languages = np.column_stack((languages, languages_count))
-
     lang_data = pd.get_dummies(data.original_language)
     lang_data["other_languages"] = 0
     for lang in languages:
-        if lang[1] < LANGUAGE_THRESHOLD:
+        if lang[0] not in important_languages:
             lang_data["other_languages"] += lang_data[lang[0]]
             lang_data = lang_data.drop(columns=[lang[0]])
-
     data = pd.concat([data, lang_data], axis=1)
     data = data.drop(columns=["original_language"])
-
     return data
-
 
 def preprocess_status(data):
     return data.drop((data[data["status"] != "Released"]).index)
@@ -280,14 +287,14 @@ def preprocess_main(df):
     :param df:
     :return:
     """
-    df = df.drop(DELETE_COLS)
+    df = df.drop(DELETE_COLS, axis=1)
     df = preprocess_original_language(df)
     df = preprocess_status(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
-    # df = parser_dicts(df)
-    df.to_csv('data\\validate_preprocessed.csv', index=False)
+    df = parser_dicts(df)
+    df.to_csv('data\\train_preprocessed_2100.csv', index=False)
 
 
 if __name__ == "__main__":
-    preprocess_main(pd.read_csv('data\\validate_capuchon.csv', sep=','))
+    preprocess_main(pd.read_csv('data\\train_capuchon.csv', sep=','))

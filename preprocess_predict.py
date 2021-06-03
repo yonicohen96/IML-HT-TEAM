@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 import json
 import re
-from preprocess import LEADING_20_COMPANIES, LEADING_30_COLLECTION, DELETE_COLS
+from preprocess import LEADING_20_COMPANIES, LEADING_30_COLLECTION, DELETE_COLS, GENRES_COLS
 import datetime as dt
 
 NAN = np.math.nan
@@ -122,10 +122,9 @@ def _get_leading_company(row):
 
 def add_genres(data):
     num_rows = data.shape[0]
-    genres_df = pd.read_csv(r"\data\genres_features.csv")
-    for genre in genres_df[0]:
-        name = "genres_" + genre
-        data[name] = np.zeros(num_rows)
+    genres = GENRES_COLS
+    for genre in genres:
+        data[genre] = np.zeros(num_rows)
     others = "genres_others"
     data[others] = np.zeros(num_rows)
     for index, row in data["genres"].items():
@@ -138,6 +137,7 @@ def add_genres(data):
                     data.at[index, others] = 1
         else:
             data.at[index, others] = 1
+    data = data.drop(["genres"], axis=1)
     return data
 
 def parser_dicts(data):
@@ -155,7 +155,8 @@ def parser_dicts(data):
         data = names_list(data, col, "name")
     #data = names_list(data, "spoken_languages", "english_name")
     data = pre_belongs_to_collection(data)
-    data = add_genres(data, "genres")
+    data = add_genres(data)
+
     # create dummies based on "production_companies"
     #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
@@ -173,32 +174,31 @@ def pre_belongs_to_collection(data):
     for index, cell in data["belongs_to_collection"].items():
         if type(cell) != str:
             data.at[index, others] = 1
-        new_name = "belongs_to_collection_" + cell
-        if new_name in data.columns:
-            data.at[index, new_name] = 1
         else:
-            data.at[index, others] = 1
+            new_name = "belongs_to_collection_" + cell
+            if new_name in data.columns:
+                data.at[index, new_name] = 1
+            else:
+                data.at[index, others] = 1
     data = data.drop(["belongs_to_collection"], axis=1)
     return data
 
 
 # Neria
 def preprocess_original_language(data):
-    # creating a row for every language with more than 30 movies:
+    # creating a row for every important language:
+    important_languages = ["en", "fr", "hi", "es", "ru", "ja"]
     languages = data["original_language"].unique()
     languages_count = data["original_language"].value_counts()
     languages = np.column_stack((languages, languages_count))
-
     lang_data = pd.get_dummies(data.original_language)
     lang_data["other_languages"] = 0
     for lang in languages:
-        if lang[1] < LANGUAGE_THRESHOLD:
+        if lang[0] not in important_languages:
             lang_data["other_languages"] += lang_data[lang[0]]
             lang_data = lang_data.drop(columns=[lang[0]])
-
     data = pd.concat([data, lang_data], axis=1)
     data = data.drop(columns=["original_language"])
-
     return data
 
 # Toot
@@ -280,13 +280,15 @@ def preprocess_date(X: pd.DataFrame):
     return X
 
 
-def preprocess_main(x):
-    df = x.drop(DELETE_COLS)
-    df = pd.DataFrame(x)
+def preprocess_main(df):
+    df = df.drop(DELETE_COLS, axis=1)
     # if df["status"] != release return rev 0
     df = preprocess_original_language(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
     df = parser_dicts(df)
-    df.to_csv('data\\validate_preprocessed.csv', index=False)
+    df.to_csv('data\\validate_preprocessed_2100.csv', index=False)
 
+
+if __name__ == "__main__":
+    preprocess_main(pd.read_csv('data\\validate_capuchon.csv', sep=','))
