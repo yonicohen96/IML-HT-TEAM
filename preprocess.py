@@ -26,11 +26,7 @@ LEADING_30_COLLECTION = ['James Bond Collection', 'Friday the 13th Collection', 
                          'The Dark Knight Collection', 'American Pie Collection', 'Hellraiser Collection']
 DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
                "title", "keywords", "cast", "crew"]
-GENRES_COLS = ['genres_Action', 'genres_Adventure', 'genres_Animation', 'genres_Comedy', 'genres_Crime',
-                'genres_Documentary', 'genres_Drama', 'genres_Family', 'genres_Fantasy', 'genres_History',
-                'genres_Horror', 'genres_Music', 'genres_Mystery', 'genres_Romance', 'genres_Science Fiction',
-                'genres_TV Movie', 'genres_Thriller', 'genres_War', 'genres_Western', 'genres_e', 'genres_h',
-                'genres_o', 'genres_r', 'genres_s', 'genres_t']
+GENRES_COLS = ['genres_Action', 'genres_Adventure', 'genres_Animation', 'genres_Comedy', 'genres_Crime', 'genres_Documentary', 'genres_Drama', 'genres_Family', 'genres_Fantasy', 'genres_History', 'genres_Horror', 'genres_Music', 'genres_Mystery', 'genres_Romance', 'genres_Science Fiction', 'genres_TV Movie', 'genres_Thriller', 'genres_War', 'genres_Western', 'genres_e', 'genres_h', 'genres_o', 'genres_r', 'genres_s', 'genres_t']
 
 # Raz
 def add_genres(data, col_name):
