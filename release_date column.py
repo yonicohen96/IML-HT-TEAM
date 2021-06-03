@@ -1,5 +1,6 @@
 ####################################################
 # implementation of date column preprocessor phase #
+# main function - preprocess_date                  #
 ####################################################
 import pandas as pd
 import datetime as dt
@@ -23,25 +24,16 @@ def _date_is_invalid(row) -> bool:
 
 
 def _get_day_column(row):
-    # TODO replace try- except with a condition to check if nan
-    try:
-        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
-        return date.weekday()
-    except:
-        return np.math.nan
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.weekday()
 
 
 def _get_month_column(row):
-    # TODO replace try- except with a condition to check if nan
-    try:
-        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
-        return date.month
-    except:
-        return np.math.nan
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.month
 
 
 def _get_days_past(row):
-    # TODO replace try- except with a condition to check if nan
     try:
         date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
         return (dt.datetime.today() - date).days
@@ -49,13 +41,32 @@ def _get_days_past(row):
         return np.math.nan
 
 
+def get_median_release_date(X: pd):
+    X.dropna()
+    median_days_pass = X.median()
+    median_date = dt.datetime.today() - dt.timedelta(days=median_days_pass)
+    return median_date.strftime("%d/%m/%Y")
+
+
 def preprocess_date(X: pd.DataFrame):
-    # replace invalid values
+    """
+    gets X - pd DataFrame with column "release_date", replace nulls with median date,
+    and adds columns -  "month", "days_passed", "day_in_week"
+    :param X: pd DataFrame with column "release_date"
+    :return: X - modified
+    """
+    # replace invalid values with nan
     X.loc[df.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
+    # change null values to median in date column.:
+    # calculate median:
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    median_date = get_median_release_date(X["days_passed"])
+    # replace null with median
+    X.loc[X["release_date"].isnull(), 'release_date'] = median_date
     # add_columns
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
     X["day_in_week"] = X.apply(_get_day_column, axis=1)
     X["month"] = X.apply(_get_month_column, axis=1)
-    X["days_passed"] = X.apply(_get_days_past, axis=1)
     return X
 
 
@@ -77,4 +88,3 @@ if __name__ == '__main__':
     df = pd.read_csv(TRAIN_PATH)
     X = preprocess_date(df)
     print(X[["release_date", "month", "days_passed", "day_in_week"]])
-
