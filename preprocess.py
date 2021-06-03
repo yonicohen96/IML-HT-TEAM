@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 import json
 import re
+import datetime as dt
 
 NAN = np.math.nan
 LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
@@ -193,11 +194,76 @@ def number_columns_preprocess(data):
     return data
 
 
+# release_date column functions:
+
+def _date_is_invalid(row) -> bool:
+    # check if row is in the format %d/%m/%Y
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        present = dt.datetime.now()
+        if date < present:
+            return False
+        else:
+            return True
+    except:
+        return True
+
+
+def _get_day_column(row):
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.weekday()
+
+
+def _get_month_column(row):
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.month
+
+
+def _get_days_past(row):
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        return (dt.datetime.today() - date).days
+    except:
+        return np.math.nan
+
+
+def _get_median_release_date(X: pd):
+    X.dropna()
+    median_days_pass = X.median()
+    median_date = dt.datetime.today() - dt.timedelta(days=median_days_pass)
+    return median_date.strftime("%d/%m/%Y")
+
+
+# TODO check if preprocess_date function works also here
+
+def preprocess_date(X: pd.DataFrame):
+    """
+    gets X - pd DataFrame with column "release_date", replace nulls with median date,
+    and adds columns -  "month", "days_passed", "day_in_week"
+    :param X: pd DataFrame with column "release_date"
+    :return: X - modified
+    """
+    # replace invalid values with nan
+    X.loc[X.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
+    # change null values to median in date column.:
+    # calculate median:
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    median_date = _get_median_release_date(X["days_passed"])
+    # replace null with median
+    X.loc[X["release_date"].isnull(), 'release_date'] = median_date
+    # add_columns
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    X["day_in_week"] = X.apply(_get_day_column, axis=1)
+    X["month"] = X.apply(_get_month_column, axis=1)
+    return X
+
+
 def preprocess_main():
     df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
     df = preprocess_original_language(df)
     df = preprocess_status(df)
     df = number_columns_preprocess(df)
+    df = preprocess_date(df)
     # df = parser_dicts(df)
     df.to_csv('data\\validate_preprocessed.csv', index=False)
 
