@@ -6,6 +6,7 @@ def insert_nan_values(column, value):
     # changes all values "value" in given column. example: train = insert_nan_values(train['id'], 0)
     return column.replace([value], np.math.nan)
 
+
 def preprocess_original_language(data):
     # creating a row for every important language:
     important_languages = ["en", "fr", "hi", "es", "ru", "ja"]

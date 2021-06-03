@@ -282,15 +282,17 @@ def preprocess_date(X: pd.DataFrame):
 
 def preprocess_main(df):
     df = df.drop(DELETE_COLS, axis=1)
-    # if df["status"] != release return rev 0
     df = preprocess_original_language(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
     df = df.drop(["release_date"], axis=1)
     df = parser_dicts(df)
-    df.to_csv('data\\validate_preprocessed_2100.csv', index=False)
+    df.to_csv('data\\validate_preprocessed_2200.csv', index=False)
     return df
 
 
 if __name__ == "__main__":
-    preprocess_main(pd.read_csv('data\\validate_capuchon.csv', sep=','))
+    df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
+    #if df["status"] != release return rev 0
+    df = df.drop(["status"], axis=1)
+    df = preprocess_main(df)
