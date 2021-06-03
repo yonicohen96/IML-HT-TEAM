@@ -27,10 +27,10 @@ LEADING_30_COLLECTION = ['James Bond Collection', 'Friday the 13th Collection', 
 DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
                "title", "keywords", "cast", "crew"]
 GENRES_COLS = ['genres_Action', 'genres_Adventure', 'genres_Animation', 'genres_Comedy', 'genres_Crime',
-               'genres_Documentary', 'genres_Drama', 'genres_Family', 'genres_Fantasy', 'genres_History',
-               'genres_Horror', 'genres_Music', 'genres_Mystery', 'genres_Romance', 'genres_Science Fiction',
-               'genres_TV Movie', 'genres_Thriller', 'genres_War', 'genres_Western', 'genres_e', 'genres_h', 'genres_o',
-               'genres_r', 'genres_s', 'genres_t']
+                'genres_Documentary', 'genres_Drama', 'genres_Family', 'genres_Fantasy', 'genres_History',
+                'genres_Horror', 'genres_Music', 'genres_Mystery', 'genres_Romance', 'genres_Science Fiction',
+                'genres_TV Movie', 'genres_Thriller', 'genres_War', 'genres_Western', 'genres_e', 'genres_h',
+                'genres_o', 'genres_r', 'genres_s', 'genres_t']
 
 # Raz
 def add_genres(data, col_name):
@@ -128,8 +128,7 @@ def _get_leading_company(row):
                 return company
     return "other company"
 
-DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
-               "title", "keywords", "cast", "crew"]
+
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies"]
@@ -292,8 +291,10 @@ def preprocess_main(df):
     df = preprocess_status(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
+    df = df.drop(["release_date"], axis=1)
     df = parser_dicts(df)
     df.to_csv('data\\train_preprocessed_2100.csv', index=False)
+    return df
 
 
 if __name__ == "__main__":
