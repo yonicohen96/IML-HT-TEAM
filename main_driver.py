@@ -1,4 +1,5 @@
-import models, preprocess
+from models import *
+from preprocess import *
 import pandas as pd
 import numpy as np
 
@@ -26,5 +27,16 @@ if __name__ == '__main__':
     # X validate
     curr_val_df = val_df[['budget', 'vote_count', 'runtime', 'en', 'es', 'fr', 'he', 'hi', 'it', 'other_languages']]
     X_val = curr_val_df.to_numpy()
+
+    models = []
+    best_model = 0
+    for m in models:
+        cur_model = m()
+        b_c = boosting(cur_model)
+        if cur_model > best_model:
+            best_model = cur_model
+
+
+
 
 
