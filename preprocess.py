@@ -9,20 +9,20 @@ LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to hav
 
 
 # Raz
-def add_dummy(data, col_name):
-    encoded = pd.get_dummies(data[col_name], prefix=col_name)
-    data = pd.concat([data, encoded], axis=1)
-    data = data.drop([col_name], axis=1)
-    return data
-
-
 def add_multi_dummies(data, col_name):
     data.loc[data[col_name].isna(), col_name] = "Unclassified"
-    # col = data[col_name].dropna()
+    #col = data[col_name].dropna()
     mlb = MultiLabelBinarizer()
     encoded = mlb.fit_transform(data[col_name])
     names = [col_name + "_" + name for name in mlb.classes_]
     data = pd.concat([data, pd.DataFrame(encoded, columns=names, index=data.index)], axis=1)
+    data = data.drop([col_name], axis=1)
+    return data
+
+
+def add_dummy(data, col_name):
+    encoded = pd.get_dummies(data[col_name], prefix=col_name)
+    data = pd.concat([data, encoded], axis=1)
     data = data.drop([col_name], axis=1)
     return data
 
@@ -79,6 +79,20 @@ def parser_col_multi(data, col_name):
     return data
 
 
+def names_list(data, col_name, value):
+    for index, cell in data[col_name].items():
+        if type(cell) == dict:
+            data.at[index, col_name] = cell[value]
+        elif type(cell) == list:
+            lst = list()
+            for d in cell:
+                lst.append(d[value])
+            data.at[index, col_name] = lst
+        else:
+            data.at[index, col_name] = np.math.nan
+    return data
+
+
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
@@ -87,27 +101,34 @@ def parser_dicts(data):
         data = parser_col_single(data, col)
     for col in cols2:
         data = parser_col_multi(data, col)
-    only_names = ["belongs_to_collection", "genres", "keywords"]
+    only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
     for col in only_names:
-        data = names_list(data, col)
-    data = add_dummy(data, "belongs_to_collection")
+        data = names_list(data, col, "name")
+    data = names_list(data, "spoken_languages", "english_name")
+    data = pre_belongs_to_collection(data)
     data = add_multi_dummies(data, "genres")
-    data = add_multi_dummies(data, "keywords")
-
     return data
 
 
-def names_list(data, col_name):
-    for index, cell in data[col_name].items():
-        if type(cell) == dict:
-            data.at[index, col_name] = cell["name"]
-        elif type(cell) == list:
-            lst = list()
-            for d in cell:
-                lst.append(d["name"])
-            data.at[index, col_name] = lst
+def pre_belongs_to_collection(data):
+    num_rows = data.shape[0]
+    collection_counts = data["belongs_to_collection"].value_counts()[:30]
+    best_collections = np.array(collection_counts.index)
+    np.savetxt(r"\data\collection_features.csv", best_collections, delimiter=",")
+    for collection in best_collections:
+        name = "belongs_to_collection_" + collection
+        data[name] = np.zeros(num_rows)
+    others = "belongs_to_collection_others"
+    data[others] = np.zeros(num_rows)
+    for index, cell in data["belongs_to_collection"].items():
+        if type(cell) != str:
+            continue
+        new_name = "belongs_to_collection_" + cell
+        if new_name in data.columns:
+            data.at[index, new_name] = 1
         else:
-            data.at[index, col_name] = np.math.nan
+            data.at[index, others] = 1
+    data = data.drop(["belongs_to_collection"], axis=1)
     return data
 
 

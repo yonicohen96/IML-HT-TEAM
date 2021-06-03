@@ -147,8 +147,7 @@ def parser_dicts(data):
         data = names_list(data, col, "name")
     data = names_list(data, "spoken_languages", "english_name")
     data = pre_belongs_to_collection(data)
-    #data = add_multi_dummies(data, "genres")
-    #data = add_multi_dummies(data, "keywords")
+    data = add_multi_dummies(data, "genres")
     return data
 
 
