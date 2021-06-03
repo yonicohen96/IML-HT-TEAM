@@ -172,6 +172,7 @@ def pre_belongs_to_collection(data):
     data = data.drop(["belongs_to_collection"], axis=1)
     return data
 
+
 if __name__ == '__main__':
     data = pd.read_csv(r"train_capuchon.csv")
     data = parser_dicts(data)
