@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 
 NAN = np.math.nan
+LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
 
 
 # Neria
 def preprocess_original_language(data):
     # creating a row for every language with more than 30 movies:
-    LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
-
     languages = data["original_language"].unique()
     languages_count = data["original_language"].value_counts()
     languages = np.column_stack((languages, languages_count))
@@ -45,7 +44,6 @@ def number_columns_preprocess(data):
     data.loc[data['budget'].isna(), 'budget'] = data['budget'].median()
 
     # normalize the runtime, vote_count, budget
-    # df_robust = df.copy()
     for column in ['runtime', 'vote_count', 'budget']:
         data[column] = (data[column] - data[column].median()) / data[column].std()
 
@@ -57,7 +55,7 @@ def preprocess_main():
     df = preprocess_original_language(df)
     df = preprocess_status(df)
     df = number_columns_preprocess(df)
-    df.to_csv('data\\train_preprocessed.csv')
+    df.to_csv('data\\train_preprocessed.csv', index=False)
 
 
 if __name__ == "__main__":
