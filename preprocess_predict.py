@@ -3,6 +3,12 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 import json
 import re
+from preprocess import LEADING_20_COMPANIES, LEADING_30_COLLECTION, DELETE_COLS
+import datetime as dt
+
+NAN = np.math.nan
+LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
+
 
 def preprocess_original_language(data):
     # creating a row for every important language:
@@ -20,16 +26,6 @@ def preprocess_original_language(data):
     data = data.drop(columns=["original_language"])
     return data
 
-
-
-
-NAN = np.math.nan
-LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
-LEADING_20_COMPANIES = ["Working Title Films","Village Roadshow Pictures",
-                        "Sony Pictures", "Relativity Media","DreamWorks Pictures","United Artists","StudioCanal",
-                        "Lionsgate","TriStar Pictures","Canal+","Miramax","Touchstone Pictures",
-                        "Walt Disney Pictures","New Line Cinema","Metro-Goldwyn-Mayer","20th Century Fox",
-                        "Paramount","Columbia Pictures","Warner Bros. Pictures","Universal Pictures"]
 
 # Raz
 def add_multi_dummies(data, col_name):
@@ -124,32 +120,51 @@ def _get_leading_company(row):
     return "other company"
 
 
+def add_genres(data):
+    num_rows = data.shape[0]
+    genres_df = pd.read_csv(r"\data\genres_features.csv")
+    for genre in genres_df[0]:
+        name = "genres_" + genre
+        data[name] = np.zeros(num_rows)
+    others = "genres_others"
+    data[others] = np.zeros(num_rows)
+    for index, row in data["genres"].items():
+        if type(row) == list:
+            for gen in row:
+                new_name = "genres_" + gen
+                if new_name in data.columns:
+                    data.at[index, new_name] = 1
+                else:
+                    data.at[index, others] = 1
+        else:
+            data.at[index, others] = 1
+    return data
+
 def parser_dicts(data):
+    #TODO - delete weak columns
     cols1 = ["belongs_to_collection"]
-    cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
+    cols2 = ["genres", "production_companies"]
+    # TODO - production_countries, spoken_languages, keywords, cast, crew
     data = make_nan(data, cols1 + cols2)
     for col in cols1:
         data = parser_col_single(data, col)
     for col in cols2:
         data = parser_col_multi(data, col)
-    only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
-    for col in only_names:
+    #only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
+    for col in cols1+cols2:
         data = names_list(data, col, "name")
-    data = names_list(data, "spoken_languages", "english_name")
+    #data = names_list(data, "spoken_languages", "english_name")
     data = pre_belongs_to_collection(data)
-    data = add_multi_dummies(data, "genres")
+    data = add_genres(data, "genres")
     # create dummies based on "production_companies"
     #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
     data = add_dummy(data, "production_companies")
     return data
 
-
 def pre_belongs_to_collection(data):
     num_rows = data.shape[0]
-    collection_counts = data["belongs_to_collection"].value_counts()[:30]
-    best_collections = np.array(collection_counts.index)
-    np.savetxt(r"\data\collection_features.csv", best_collections, delimiter=",")
+    best_collections = LEADING_30_COLLECTION
     for collection in best_collections:
         name = "belongs_to_collection_" + collection
         data[name] = np.zeros(num_rows)
@@ -157,7 +172,7 @@ def pre_belongs_to_collection(data):
     data[others] = np.zeros(num_rows)
     for index, cell in data["belongs_to_collection"].items():
         if type(cell) != str:
-            continue
+            data.at[index, others] = 1
         new_name = "belongs_to_collection_" + cell
         if new_name in data.columns:
             data.at[index, new_name] = 1
@@ -203,11 +218,75 @@ def number_columns_preprocess(data):
     return data
 
 
+# release_date column functions:
+
+def _date_is_invalid(row) -> bool:
+    # check if row is in the format %d/%m/%Y
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        present = dt.datetime.now()
+        if date < present:
+            return False
+        else:
+            return True
+    except:
+        return True
+
+
+def _get_day_column(row):
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.weekday()
+
+
+def _get_month_column(row):
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return date.month
+
+
+def _get_days_past(row):
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        return (dt.datetime.today() - date).days
+    except:
+        return np.math.nan
+
+
+def _get_median_release_date(X: pd):
+    X.dropna()
+    median_days_pass = X.median()
+    median_date = dt.datetime.today() - dt.timedelta(days=median_days_pass)
+    return median_date.strftime("%d/%m/%Y")
+
+
+def preprocess_date(X: pd.DataFrame):
+    """
+    gets X - pd DataFrame with column "release_date", replace nulls with median date,
+    and adds columns -  "month", "days_passed", "day_in_week"
+    :param X: pd DataFrame with column "release_date"
+    :return: X - modified
+    """
+    # replace invalid values with nan
+    X.loc[X.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
+    # change null values to median in date column.:
+    # calculate median:
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    median_date = _get_median_release_date(X["days_passed"])
+    # replace null with median
+    X.loc[X["release_date"].isnull(), 'release_date'] = median_date
+    # add_columns
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    X["day_in_week"] = X.apply(_get_day_column, axis=1)
+    X["month"] = X.apply(_get_month_column, axis=1)
+    return X
+
+
 def preprocess_main(x):
+    df = x.drop(DELETE_COLS)
     df = pd.DataFrame(x)
     # if df["status"] != release return rev 0
     df = preprocess_original_language(df)
     df = number_columns_preprocess(df)
-    #df = parser_dicts(df)
+    df = preprocess_date(df)
+    df = parser_dicts(df)
     df.to_csv('data\\validate_preprocessed.csv', index=False)
 

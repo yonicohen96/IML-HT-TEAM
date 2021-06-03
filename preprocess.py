@@ -12,14 +12,28 @@ LEADING_20_COMPANIES = ["Working Title Films","Village Roadshow Pictures",
                         "Lionsgate","TriStar Pictures","Canal+","Miramax","Touchstone Pictures",
                         "Walt Disney Pictures","New Line Cinema","Metro-Goldwyn-Mayer","20th Century Fox",
                         "Paramount","Columbia Pictures","Warner Bros. Pictures","Universal Pictures"]
+LEADING_30_COLLECTION = ['James Bond Collection', 'Friday the 13th Collection', 'Harry Potter Collection',
+                         'X-Men Collection', 'Star Wars Collection', 'Halloween Collection',
+                         'Alvin and the Chipmunks Collection', 'Texas Chainsaw Massacre Collection',
+                         'Universal Soldier Collection', 'Naked Gun Collection', 'Beverly Hills Cop Collection',
+                         'Police Academy Collection', 'The Expendables Collection', 'The Santa Clause Collection',
+                         'A Nightmare on Elm Street Collection', 'Scream Collection',
+                         'Justice League (Animated) Collection', 'The Karate Kid Collection', 'Step Up Collection',
+                         'Meet the Parents Collection', 'Planet of the Apes (Original) Collection',
+                         'Star Trek: The Original Series Collection', 'Jackass Collection',
+                         'The Transporter Collection', 'Resident Evil Collection',
+                         'The Pink Panther (Original) Collection', 'The Fast and the Furious Collection',
+                         'The Dark Knight Collection', 'American Pie Collection', 'Hellraiser Collection']
+DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
+               "title", "keywords", "cast", "crew"]
 
 # Raz
-def add_multi_dummies(data, col_name):
+def add_genres(data, col_name):
     data.loc[data[col_name].isna(), col_name] = "Unclassified"
-    #col = data[col_name].dropna()
     mlb = MultiLabelBinarizer()
     encoded = mlb.fit_transform(data[col_name])
     names = [col_name + "_" + name for name in mlb.classes_]
+    np.savetxt(r"\data\genres_features.csv", np.asarray(names), delimiter=",")
     data = pd.concat([data, pd.DataFrame(encoded, columns=names, index=data.index)], axis=1)
     data = data.drop([col_name], axis=1)
     return data
@@ -105,21 +119,23 @@ def _get_leading_company(row):
                 return company
     return "other company"
 
-
+DELETE_COLS = ["homepage", "original_title", "overview", "production_countries", "spoken_languages", "tagline",
+               "title", "keywords", "cast", "crew"]
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
-    cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
+    cols2 = ["genres", "production_companies"]
+    # TODO - production_countries, spoken_languages, keywords, cast, crew
     data = make_nan(data, cols1 + cols2)
     for col in cols1:
         data = parser_col_single(data, col)
     for col in cols2:
         data = parser_col_multi(data, col)
-    only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
-    for col in only_names:
+    #only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
+    for col in cols1+cols2:
         data = names_list(data, col, "name")
-    data = names_list(data, "spoken_languages", "english_name")
+    #data = names_list(data, "spoken_languages", "english_name")
     data = pre_belongs_to_collection(data)
-    data = add_multi_dummies(data, "genres")
+    data = add_genres(data, "genres")
     # create dummies based on "production_companies"
     #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
@@ -128,10 +144,10 @@ def parser_dicts(data):
 
 
 def pre_belongs_to_collection(data):
+    #collection_counts = data["belongs_to_collection"].value_counts()[:30]
+    #best_collections = np.array(collection_counts.index)
     num_rows = data.shape[0]
-    collection_counts = data["belongs_to_collection"].value_counts()[:30]
-    best_collections = np.array(collection_counts.index)
-    np.savetxt(r"\data\collection_features.csv", best_collections, delimiter=",")
+    best_collections = LEADING_30_COLLECTION
     for collection in best_collections:
         name = "belongs_to_collection_" + collection
         data[name] = np.zeros(num_rows)
@@ -139,7 +155,7 @@ def pre_belongs_to_collection(data):
     data[others] = np.zeros(num_rows)
     for index, cell in data["belongs_to_collection"].items():
         if type(cell) != str:
-            continue
+            data.at[index, others] = 1
         new_name = "belongs_to_collection_" + cell
         if new_name in data.columns:
             data.at[index, new_name] = 1
@@ -258,8 +274,13 @@ def preprocess_date(X: pd.DataFrame):
     return X
 
 
-def preprocess_main():
-    df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
+def preprocess_main(df):
+    """
+    get x as df (without y)
+    :param df:
+    :return:
+    """
+    df = df.drop(DELETE_COLS)
     df = preprocess_original_language(df)
     df = preprocess_status(df)
     df = number_columns_preprocess(df)
@@ -269,4 +290,4 @@ def preprocess_main():
 
 
 if __name__ == "__main__":
-    preprocess_main()
+    preprocess_main(pd.read_csv('data\\validate_capuchon.csv', sep=','))
