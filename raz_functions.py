@@ -146,11 +146,31 @@ def parser_dicts(data):
     for col in only_names:
         data = names_list(data, col, "name")
     data = names_list(data, "spoken_languages", "english_name")
-    #data = add_dummy(data, "belongs_to_collection")
+    data = pre_belongs_to_collection(data)
     #data = add_multi_dummies(data, "genres")
     #data = add_multi_dummies(data, "keywords")
     return data
 
+
+def pre_belongs_to_collection(data):
+    num_rows = data.shape[0]
+    collection_counts = data["belongs_to_collection"].value_counts()[:30]
+    best_collections = np.array(collection_counts.index)
+    for collection in best_collections:
+        name = "belongs_to_collection_" + collection
+        data[name] = np.zeros(num_rows)
+    others = "belongs_to_collection_others"
+    data[others] = np.zeros(num_rows)
+    for index, cell in data["belongs_to_collection"].items():
+        if type(cell) != str:
+            continue
+        new_name = "belongs_to_collection_" + cell
+        if new_name in data.columns:
+            data.at[index, new_name] = 1
+        else:
+            data.at[index, others] = 1
+    data = data.drop(["belongs_to_collection"], axis=1)
+    return data
 
 if __name__ == '__main__':
     data = pd.read_csv(r"train_capuchon.csv")
