@@ -120,6 +120,20 @@ def parser_col_multi(data, col_name):
     return data
 
 
+def names_list(data, col_name, value):
+    for index, cell in data[col_name].items():
+        if type(cell) == dict:
+            data.at[index, col_name] = cell[value]
+        elif type(cell) == list:
+            lst = list()
+            for d in cell:
+                lst.append(d[value])
+            data.at[index, col_name] = lst
+        else:
+            data.at[index, col_name] = np.math.nan
+    return data
+
+
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
@@ -128,27 +142,13 @@ def parser_dicts(data):
         data = parser_col_single(data, col)
     for col in cols2:
         data = parser_col_multi(data, col)
-    only_names = ["belongs_to_collection", "genres", "keywords"]
+    only_names = ["belongs_to_collection", "genres", "production_companies", "production_countries", "keywords"]
     for col in only_names:
-        data = names_list(data, col)
-    data = add_dummy(data, "belongs_to_collection")
-    data = add_multi_dummies(data, "genres")
-    data = add_multi_dummies(data, "keywords")
-
-    return data
-
-
-def names_list(data, col_name):
-    for index, cell in data[col_name].items():
-        if type(cell) == dict:
-            data.at[index, col_name] = cell["name"]
-        elif type(cell) == list:
-            lst = list()
-            for d in cell:
-                lst.append(d["name"])
-            data.at[index, col_name] = lst
-        else:
-            data.at[index, col_name] = np.math.nan
+        data = names_list(data, col, "name")
+    data = names_list(data, "spoken_languages", "english_name")
+    #data = add_dummy(data, "belongs_to_collection")
+    #data = add_multi_dummies(data, "genres")
+    #data = add_multi_dummies(data, "keywords")
     return data
 
 
