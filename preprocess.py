@@ -6,7 +6,11 @@ import re
 
 NAN = np.math.nan
 LANGUAGE_THRESHOLD = 30  # amount of movies a language needs to appear in to have its own column
-
+LEADING_20_COMPANIES = ["Working Title Films","Village Roadshow Pictures",
+                        "Sony Pictures", "Relativity Media","DreamWorks Pictures","United Artists","StudioCanal",
+                        "Lionsgate","TriStar Pictures","Canal+","Miramax","Touchstone Pictures",
+                        "Walt Disney Pictures","New Line Cinema","Metro-Goldwyn-Mayer","20th Century Fox",
+                        "Paramount","Columbia Pictures","Warner Bros. Pictures","Universal Pictures"]
 
 # Raz
 def add_multi_dummies(data, col_name):
@@ -93,6 +97,14 @@ def names_list(data, col_name, value):
     return data
 
 
+def _get_leading_company(row):
+    if type(row.production_companies) == list:
+        for company in row.production_companies:
+            if company in LEADING_20_COMPANIES:
+                return company
+    return "other company"
+
+
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies", "production_countries", "spoken_languages", "keywords", "cast", "crew"]
@@ -107,6 +119,10 @@ def parser_dicts(data):
     data = names_list(data, "spoken_languages", "english_name")
     data = pre_belongs_to_collection(data)
     data = add_multi_dummies(data, "genres")
+    # create dummies based on "production_companies"
+    #TODO check if works
+    data["production_companies"] = data.apply(_get_leading_company, axis=1)
+    data = add_dummy(data, "production_companies")
     return data
 
 
