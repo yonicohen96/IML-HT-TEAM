@@ -10,17 +10,17 @@ import re
 TRAIN_PATH = "train_capuchon.csv"
 
 
-def _check_date_validation(row) -> bool:
+def _date_is_invalid(row) -> bool:
     # check if row is in the format %d/%m/%Y
     try:
         date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
         present = dt.datetime.now()
         if date < present:
-            return True
-        else:
             return False
-    except ValueError:
-        return False
+        else:
+            return True
+    except:
+        return True
 
 
 def _get_day_column(row):
@@ -33,18 +33,23 @@ def _get_month_column(row):
     return date.month
 
 
+def _get_days_past(row):
+    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+    return (dt.datetime.today() - date).days
+
+
 def preprocess_date():
     # get data
     df = pd.read_csv(TRAIN_PATH)
-    # filter only date column and drop nan
-    df = df[["revenue", "release_date"]]
-    df = df.dropna()
-    # check date validation
-    df = df[df.apply(_check_date_validation, axis=1)]
-    # add_day_column
-    df["day"] = df.apply(_get_day_column, axis=1)
-    # add_month_column
+    # replace invalid values
+    df.loc[df.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
+    # TODO - check if the following functions handle nan values.
+    # TODO - then delete dropna
+    df = df.dropna(subset=["release_date"])
+    # add_columns
+    df["day_in_week"] = df.apply(_get_day_column, axis=1)
     df["month"] = df.apply(_get_month_column, axis=1)
+    df["days_passed"] = df.apply(_get_days_past, axis=1)
     return df
 
 
@@ -61,9 +66,7 @@ def plot(x, y):
     fig.update_xaxes(title="cx")
     fig.show()
 
+
 if __name__ == '__main__':
-    df = preprocess_date()
-    # only simple scatter plot - doesnt mean anything:
-    plot(df["day"], df["revenue"])
-    plot(df["month"], df["revenue"])
+    print(preprocess_date())
 
