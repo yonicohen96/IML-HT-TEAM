@@ -1,0 +1,14 @@
+Best subset for predicting revenue:
+[["vote_count","budget","production_companies_other company","days_passed","runtime","month","genres_Adventure","genres_Action","en","genres_Fantasy","day_in_week","genres_Documentary","production_companies_Paramount","genres_Family","production_companies_Universal Pictures","belongs_to_collection_others","other_languages","genres_Drama","production_companies_Walt Disney Pictures","production_companies_Warner Bros. Pictures","production_companies_20th Century Fox","production_companies_New Line Cinema","production_companies_Columbia Pictures","belongs_to_collection_X-Men Collection","belongs_to_collection_The Dark Knight Collection","belongs_to_collection_Star Wars Collection","belongs_to_collection_Harry Potter Collection","genres_Science Fiction","genres_Animation"]]
+
+Best subset for predicting vote average:
+[["runtime","vote_count","genres_Drama","days_passed","month","genres_History","genres_Comedy","genres_Horror","budget","belongs_to_collection_Halloween Collection","belongs_to_collection_Star Wars Collection","production_companies_Warner Bros. Pictures","genres_Science Fiction","en","production_companies_other company","production_companies_Paramount","genres_Crime","genres_Adventure","production_companies_United Artists","production_companies_Working Title Films","belongs_to_collection_The Dark Knight Collection","production_companies_Universal Pictures","production_companies_Walt Disney Pictures","genres_Action","genres_Fantasy"]]
+
+כדי לבחור את תת הקבוצות של הפיצ'רים, השתמשנו בארבע שיטות:
+1. בדיקת קורלציה באמצעות מתאם פירסון בין הפיצ'רים לבין עצמם כדי למצוא תלות
+2. בדיקת הקורלציה באמצעות מתאם פירסון של הפיצ'רים מול ווקטור התוצאות.
+3. בדיקת הקשר בין פיצ'רים לבין ווקטור התוצאות באמצעות המודל:
+sklearn.feature_selection.mutual_info_regression
+שמבוסס על k שכנים קרובים
+4. השווינו את התוצאות שהתקבלו משלוש השיטות, ויצרנו תת קבוצות פיצ'רים חשודים. לכל קבוצת פיצ'רים השתמשנו ביער מקרי כדי להעריך את הביצועים.
+וכך בסופו של דבר בחרנו קבוצות עם מספר פיצ'רים נמוך יותר כדי להוריד את השונות, ובו זמנית עם הטייה נמוכה.
