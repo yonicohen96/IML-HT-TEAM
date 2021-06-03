@@ -24,18 +24,29 @@ def _date_is_invalid(row) -> bool:
 
 
 def _get_day_column(row):
-    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
-    return date.weekday()
+    # TODO replace try- except with a condition to check if nan
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        return date.weekday()
+    except:
+        return np.math.nan
 
 
 def _get_month_column(row):
-    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
-    return date.month
-
+    # TODO replace try- except with a condition to check if nan
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        return date.month
+    except:
+        return np.math.nan
 
 def _get_days_past(row):
-    date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
-    return (dt.datetime.today() - date).days
+    # TODO replace try- except with a condition to check if nan
+    try:
+        date = dt.datetime.strptime(row.release_date, "%d/%m/%Y")
+        return (dt.datetime.today() - date).days
+    except:
+        return np.math.nan
 
 
 def preprocess_date():
@@ -43,9 +54,6 @@ def preprocess_date():
     df = pd.read_csv(TRAIN_PATH)
     # replace invalid values
     df.loc[df.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
-    # TODO - check if the following functions handle nan values.
-    # TODO - then delete dropna
-    df = df.dropna(subset=["release_date"])
     # add_columns
     df["day_in_week"] = df.apply(_get_day_column, axis=1)
     df["month"] = df.apply(_get_month_column, axis=1)
@@ -68,5 +76,6 @@ def plot(x, y):
 
 
 if __name__ == '__main__':
-    print(preprocess_date())
+    X = preprocess_date()
+    print(X[["release_date", "month", "days_passed", "day_in_week"]])
 
