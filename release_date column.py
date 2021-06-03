@@ -5,8 +5,7 @@ import pandas as pd
 import datetime as dt
 import plotly.graph_objects as go
 import numpy as np
-import plotly as plt
-import re
+
 TRAIN_PATH = "train_capuchon.csv"
 
 
@@ -40,6 +39,7 @@ def _get_month_column(row):
     except:
         return np.math.nan
 
+
 def _get_days_past(row):
     # TODO replace try- except with a condition to check if nan
     try:
@@ -49,16 +49,14 @@ def _get_days_past(row):
         return np.math.nan
 
 
-def preprocess_date():
-    # get data
-    df = pd.read_csv(TRAIN_PATH)
+def preprocess_date(X: pd.DataFrame):
     # replace invalid values
-    df.loc[df.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
+    X.loc[df.apply(_date_is_invalid, axis=1), 'release_date'] = np.math.nan
     # add_columns
-    df["day_in_week"] = df.apply(_get_day_column, axis=1)
-    df["month"] = df.apply(_get_month_column, axis=1)
-    df["days_passed"] = df.apply(_get_days_past, axis=1)
-    return df
+    X["day_in_week"] = X.apply(_get_day_column, axis=1)
+    X["month"] = X.apply(_get_month_column, axis=1)
+    X["days_passed"] = X.apply(_get_days_past, axis=1)
+    return X
 
 
 def plot(x, y):
@@ -71,11 +69,12 @@ def plot(x, y):
                       margin=dict(l=200, r=350, t=100, b=70),
                       font=dict(size=18))
     fig.update_yaxes(title="y")
-    fig.update_xaxes(title="cx")
+    fig.update_xaxes(title="x")
     fig.show()
 
 
 if __name__ == '__main__':
-    X = preprocess_date()
+    df = pd.read_csv(TRAIN_PATH)
+    X = preprocess_date(df)
     print(X[["release_date", "month", "days_passed", "day_in_week"]])
 
