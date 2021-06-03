@@ -287,15 +287,15 @@ def preprocess_main(df):
     :return:
     """
     df = df.drop(DELETE_COLS, axis=1)
+    df = df.drop(["status"], axis=1)
     df = preprocess_original_language(df)
-    df = preprocess_status(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
     df = df.drop(["release_date"], axis=1)
     df = parser_dicts(df)
-    df.to_csv('data\\train_preprocessed_2100.csv', index=False)
+    df.to_csv('data\\train_preprocessed_2200.csv', index=False)
     return df
 
 
 if __name__ == "__main__":
-    preprocess_main(pd.read_csv('data\\train_capuchon.csv', sep=','))
+    preprocess_main(pd.read_csv('train_capuchon.csv', sep=','))
