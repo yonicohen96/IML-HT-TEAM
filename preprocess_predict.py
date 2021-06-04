@@ -288,11 +288,12 @@ def preprocess_main(df):
     df = preprocess_date(df)
     df = df.drop(["release_date"], axis=1)
     df = parser_dicts(df)
-    df.to_csv('data\\validate_preprocessed_2200.csv', index=False)
+    #df = df[selection]
+    #df.to_csv('data\\validate_preprocessed_2200.csv', index=False)
     return df
 
 
-if __name__ == "__main__":
-    df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
-    #if df["status"] != release return rev 0
-    df = preprocess_main(df)
+# if __name__ == "__main__":
+#     df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
+#     #if df["status"] != release return rev 0
+#     df = preprocess_main(df)

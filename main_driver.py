@@ -1,14 +1,28 @@
 from models import *
-from preprocess import preprocess_main
-import preprocess_predict
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import Lasso, Ridge, LinearRegression
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score, mean_squared_error
-import matplotlib.pyplot as plt
 import pickle
+import preprocess
+import preprocess_predict
 
+REVENUE_FEATURE_SUBSET = ["vote_count", "budget", "production_companies_other company", "days_passed", "runtime",
+                          "month", "genres_Adventure", "genres_Action", "en", "genres_Fantasy", "day_in_week",
+                          "genres_Documentary", "production_companies_Paramount", "genres_Family",
+                          "production_companies_Universal Pictures", "belongs_to_collection_others", "other_languages",
+                          "genres_Drama", "production_companies_Walt Disney Pictures",
+                          "production_companies_Warner Bros. Pictures", "production_companies_20th Century Fox",
+                          "production_companies_New Line Cinema", "production_companies_Columbia Pictures",
+                          "belongs_to_collection_X-Men Collection", "belongs_to_collection_The Dark Knight Collection",
+                          "belongs_to_collection_Star Wars Collection", "belongs_to_collection_Harry Potter Collection",
+                          "genres_Science Fiction", "genres_Animation"]
+
+VOTE_FEATURE_SUBSET = ["runtime", "vote_count", "genres_Drama", "days_passed", "month", "genres_History",
+                       "genres_Comedy", "genres_Horror", "budget", "belongs_to_collection_Halloween Collection",
+                       "belongs_to_collection_Star Wars Collection", "production_companies_Warner Bros. Pictures",
+                       "genres_Science Fiction", "en", "production_companies_other company",
+                       "production_companies_Paramount", "genres_Crime", "genres_Adventure",
+                       "production_companies_United Artists", "production_companies_Working Title Films",
+                       "belongs_to_collection_The Dark Knight Collection", "production_companies_Universal Pictures",
+                       "production_companies_Walt Disney Pictures", "genres_Action", "genres_Fantasy"]
 
 # def get_x_y(df):
 #     y_revenue = df['revenue'].to_numpy()
@@ -35,27 +49,6 @@ if __name__ == '__main__':
 
     # X validate
     x_validate = train.drop(["revenue", "vote_average"], axis=1)
-
-    x_train = x_train[
-        ["runtime", "vote_count", "genres_Drama", "days_passed", "month", "genres_History", "genres_Comedy",
-         "genres_Horror", "budget", "belongs_to_collection_Halloween Collection",
-         "belongs_to_collection_Star Wars Collection", "production_companies_Warner Bros. Pictures",
-         "genres_Science Fiction", "en", "production_companies_other company", "production_companies_Paramount",
-         "genres_Crime", "genres_Adventure", "production_companies_United Artists",
-         "production_companies_Working Title Films", "belongs_to_collection_The Dark Knight Collection",
-         "production_companies_Universal Pictures", "production_companies_Walt Disney Pictures", "genres_Action",
-         "genres_Fantasy"]]
-
-    x_validate = x_validate[
-        ["runtime", "vote_count", "genres_Drama", "days_passed", "month", "genres_History", "genres_Comedy",
-         "genres_Horror", "budget", "belongs_to_collection_Halloween Collection",
-         "belongs_to_collection_Star Wars Collection", "production_companies_Warner Bros. Pictures",
-         "genres_Science Fiction", "en", "production_companies_other company", "production_companies_Paramount",
-         "genres_Crime", "genres_Adventure", "production_companies_United Artists",
-         "production_companies_Working Title Films", "belongs_to_collection_The Dark Knight Collection",
-         "production_companies_Universal Pictures", "production_companies_Walt Disney Pictures", "genres_Action",
-         "genres_Fantasy"]]
-
 
     revenue_baseline = LinReg()
     revenue_baseline.fit(x_train, y_revenue_train)
@@ -90,6 +83,11 @@ if __name__ == '__main__':
         if cur_score < best_vote_score:
             best_vote_model = m
             best_vote_score = cur_score
+
+    print(best_revenue_model)
+    print(best_revenue_score)
+    print(best_vote_model)
+    print(best_vote_score)
 
     with open('models.pkl', 'wb') as f:
         pickle.dump(best_revenue_model, f)
