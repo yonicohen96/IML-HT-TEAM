@@ -4,6 +4,8 @@ from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import AdaBoostRegressor
+
 
 df = pd.read_csv(r"data\train_preprocessed_2200.csv")
 val_df = pd.read_csv(r"data\validate_preprocessed_2200.csv")
@@ -25,18 +27,19 @@ X_val = val_df.drop(["revenue", "vote_average"], axis=1)
 X_val = X_val.to_numpy()
 
 
-def linear_reg(x_train, x_validate, y_train, y_validate):
-    # linerar regression - revenue
-    reg = LinearRegression()
-    reg.fit(x_train, y_train)
-    y_hat = reg.predict(x_validate)
-    MSE = mean_squared_error(y_validate, y_hat)
-    # The coefficients
-    # print('Coefficients: \n', reg.coef_)
-    # The mean squared error
-    print('Mean squared error: %.2f' % MSE)
-    # The coefficient of determination: 1 is perfect prediction
-    print('Coefficient of determination: %.2f' % r2_score(y_val_revenue, y_hat))
+class LinReg:
+    def __init__(self):
+        self.model = LinearRegression()
+
+    def fit(self, x, y):
+        self.model.fit(x, y)
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.predict(x)
+        return mean_squared_error(y, y_predict)
 
 
 class Forest:
@@ -70,6 +73,22 @@ def best_tree_depth(X_train, y_train, X_validate, y_validate):
         plt.ylabel("MSE")
         plt.legend()
         plt.show()
+
+
+class Adaboost:
+    def __init__(self, n_estimator):
+        self.model = AdaBoostRegressor(n_estimators=n_estimator, random_state=0,
+                                       loss="square")
+
+    def fit(self, x, y):
+        self.model.fit(x, y)
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.predict(x)
+        return mean_squared_error(y, y_predict)
 
 
 class Lass:
@@ -152,9 +171,3 @@ def find_alpha_for_lasso_ridge(X_train, y_train, X_validate, y_validate):
 
     return alphas[lasso_a_ind], alphas[ridge_a_ind]
 
-
-if __name__ == "__main__":
-    revenue_alpha_lasso, revenue_alpha_ridge = \
-        find_alpha_for_lasso_ridge(X, y_revenue, X_val, y_val_revenue)
-    vote_average_alpha_lasso, vote_average_alpha_ridge = \
-        find_alpha_for_lasso_ridge(X, y_vote_average, X_val, y_val_vote_average)

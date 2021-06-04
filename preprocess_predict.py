@@ -282,6 +282,7 @@ def preprocess_date(X: pd.DataFrame):
 
 def preprocess_main(df):
     df = df.drop(DELETE_COLS, axis=1)
+    df = df.drop(["status"], axis=1)
     df = preprocess_original_language(df)
     df = number_columns_preprocess(df)
     df = preprocess_date(df)
@@ -294,5 +295,4 @@ def preprocess_main(df):
 if __name__ == "__main__":
     df = pd.read_csv('data\\validate_capuchon.csv', sep=',')
     #if df["status"] != release return rev 0
-    df = df.drop(["status"], axis=1)
     df = preprocess_main(df)
