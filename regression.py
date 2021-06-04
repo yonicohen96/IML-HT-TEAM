@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle
 import preprocess_predict
+import numpy as np
 
 ################################################
 #
@@ -24,7 +25,7 @@ def predict(csv_file):
     print("before: " + str(predict_df.shape))
     print(predict_df.columns)
     data = preprocess_predict.preprocess_main(predict_df)
-    print(data.columns)
+    np.array(data.columns)
     with open('models.pkl', 'rb') as file:
         revenue_model = pickle.load(file)
         vote_model = pickle.load(file)
