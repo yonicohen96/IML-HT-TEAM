@@ -1,12 +1,5 @@
 from models import *
-from preprocess import preprocess_main
-import preprocess_predict
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import Lasso, Ridge, LinearRegression
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score, mean_squared_error
-import matplotlib.pyplot as plt
 import pickle
 
 REVENUE_FEATURE_SUBSET = ["vote_count", "budget", "production_companies_other company", "days_passed", "runtime",

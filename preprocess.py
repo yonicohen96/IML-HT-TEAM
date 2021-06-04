@@ -276,12 +276,7 @@ def preprocess_date(X: pd.DataFrame):
     return X
 
 
-def preprocess_main(df):
-    """
-    get x as df (without y)
-    :param df:
-    :return:
-    """
+def preprocess_main(df, selection):
     df = df.drop(DELETE_COLS, axis=1)
     df = df.drop(["status"], axis=1)
     df = preprocess_original_language(df)
@@ -289,9 +284,10 @@ def preprocess_main(df):
     df = preprocess_date(df)
     df = df.drop(["release_date"], axis=1)
     df = parser_dicts(df)
-    df.to_csv('data\\train_preprocessed_2200.csv', index=False)
+    df = df[selection]
+    #df.to_csv('data\\train_preprocessed_2200.csv', index=False)
     return df
 
-
-if __name__ == "__main__":
-    preprocess_main(pd.read_csv('train_capuchon.csv', sep=','))
+#
+# if __name__ == "__main__":
+#     preprocess_main(pd.read_csv('train_capuchon.csv', sep=','))
