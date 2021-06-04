@@ -166,7 +166,8 @@ def parser_dicts(data):
     data = add_dummy(data, "production_companies")
     for company in LEADING_20_COMPANIES:
         if company not in data.columns:
-            data[company] = np.zeros(shape=data.shape[0])
+            data["production_companies_" + company] = np.zeros(shape=data.shape[0])
+    print(data.columns)
     return data
 
 def pre_belongs_to_collection(data):
