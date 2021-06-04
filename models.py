@@ -30,6 +30,7 @@ class Forest:
         self.model = self.forest.fit(x, y.values.ravel())
 
     def predict(self, x):
+        print(x.shape)
         return self.forest.predict(x)
 
     def score(self, x, y):

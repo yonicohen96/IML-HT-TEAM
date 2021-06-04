@@ -17,7 +17,14 @@ def predict(csv_file):
     :return: a tuple - (a python list with the movies revenues, a python list with the movies avg_votes)
     """
     predict_df = pd.read_csv(csv_file)
+    if "revenue" in predict_df.columns:
+        predict_df = predict_df.drop(["revenue"], axis=1)
+    if "vote_average" in predict_df.columns:
+        predict_df = predict_df.drop(["vote_average"], axis=1)
+    print("before: " + str(predict_df.shape))
+    print(predict_df.columns)
     data = preprocess_predict.preprocess_main(predict_df)
+    print(data.columns)
     with open('models.pkl', 'rb') as file:
         revenue_model = pickle.load(file)
         vote_model = pickle.load(file)
