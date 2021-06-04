@@ -22,6 +22,9 @@ def preprocess_original_language(data):
         if lang[0] not in important_languages:
             lang_data["other_languages"] += lang_data[lang[0]]
             lang_data = lang_data.drop(columns=[lang[0]])
+    for lang in important_languages:
+        if lang not in data.columns:
+            data[lang] = np.zeros(data.shape[0])
     data = pd.concat([data, lang_data], axis=1)
     data = data.drop(columns=["original_language"])
     return data
