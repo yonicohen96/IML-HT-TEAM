@@ -48,7 +48,7 @@ class Forest:
         self.forest = RandomForestRegressor(n_estimators=n_estimators, max_depth=depth, random_state=0)
 
     def fit(self, x, y):
-        self.model = self.forest.fit(x, y)
+        self.model = self.forest.fit(x, y.values.ravel())
 
     def predict(self, x):
         return self.forest.predict(x)
@@ -81,7 +81,7 @@ class Adaboost:
                                        loss="square")
 
     def fit(self, x, y):
-        self.model.fit(x, y)
+        self.model.fit(x, y.values.ravel())
 
     def predict(self, x):
         return self.model.predict(x)
