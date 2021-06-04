@@ -3,7 +3,9 @@ import pandas as pd
 from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 import matplotlib.pyplot as plt
-from Random_Forest import Forest
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import AdaBoostRegressor
+
 
 df = pd.read_csv(r"data\train_preprocessed_2200.csv")
 val_df = pd.read_csv(r"data\validate_preprocessed_2200.csv")
@@ -39,6 +41,22 @@ def linear_reg(x_train, x_validate, y_train, y_validate):
     print('Coefficient of determination: %.2f' % r2_score(y_val_revenue, y_hat))
 
 
+class Forest:
+    def __init__(self, depth=15, n_estimators=100):
+        self.model = None
+        self.forest = RandomForestRegressor(n_estimators=n_estimators, max_depth=depth, random_state=0)
+
+    def fit(self, x, y):
+        self.model = self.forest.fit(x, y)
+
+    def predict(self, x):
+        return self.forest.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.forest.predict(x)
+        return mean_squared_error(y, y_predict)
+
+
 def best_tree_depth(X_train, y_train, X_validate, y_validate):
     # Train trees on [1,50] tree depths and returns a graph of MSE results
     responses = ["vote_average", "revenue"]
@@ -54,6 +72,54 @@ def best_tree_depth(X_train, y_train, X_validate, y_validate):
         plt.ylabel("MSE")
         plt.legend()
         plt.show()
+
+
+class Adaboost:
+    def __init__(self, n_estimator):
+        self.model = AdaBoostRegressor(n_estimators=n_estimator, random_state=0,
+                                       loss="square")
+
+    def fit(self, x, y):
+        self.model.fit(x, y)
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.predict(x)
+        return mean_squared_error(y, y_predict)
+
+
+class Lass:
+    def __init__(self, a):
+        self.model = None
+        self.lasso = Lasso(alpha=a, max_iter=10000, tol=0.1)
+
+    def fit(self, x, y):
+        self.model = self.lasso.fit(x, y)
+
+    def predict(self, x):
+        return self.lasso.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.lasso.predict(x)
+        return mean_squared_error(y, y_predict)
+
+
+class Ridg:
+    def __init__(self, a):
+        self.model = None
+        self.ridge = Ridge(alpha=a, normalize=True)
+
+    def fit(self, x, y):
+        self.model = self.ridge.fit(x, y)
+
+    def predict(self, x):
+        return self.ridge.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.ridge.predict(x)
+        return mean_squared_error(y, y_predict)
 
 
 def find_alpha_for_lasso_ridge(X_train, y_train, X_validate, y_validate):
