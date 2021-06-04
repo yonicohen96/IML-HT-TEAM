@@ -91,14 +91,6 @@ if __name__ == '__main__':
             best_vote_model = m
             best_vote_score = cur_score
 
-    print(best_revenue_model)
-    print(best_revenue_score)
-    print(best_vote_model)
-    print(best_vote_score)
-
     with open('models.pkl', 'wb') as f:
         pickle.dump(best_revenue_model, f)
         pickle.dump(best_vote_model, f)
-
-    df = pd.read_csv(r"data\train_preprocessed_2200.csv")
-    val_df = pd.read_csv(r"data\validate_preprocessed_2200.csv")
