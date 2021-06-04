@@ -4,6 +4,8 @@ from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import AdaBoostRegressor
+
 
 df = pd.read_csv(r"data\train_preprocessed_2200.csv")
 val_df = pd.read_csv(r"data\validate_preprocessed_2200.csv")
@@ -70,6 +72,22 @@ def best_tree_depth(X_train, y_train, X_validate, y_validate):
         plt.ylabel("MSE")
         plt.legend()
         plt.show()
+
+
+class Adaboost:
+    def __init__(self, n_estimator):
+        self.model = AdaBoostRegressor(n_estimators=n_estimator, random_state=0,
+                                       loss="square")
+
+    def fit(self, x, y):
+        self.model.fit(x, y)
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def score(self, x, y):
+        y_predict = self.predict(x)
+        return mean_squared_error(y, y_predict)
 
 
 class Lass:
