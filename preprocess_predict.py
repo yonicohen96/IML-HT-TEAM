@@ -22,6 +22,9 @@ def preprocess_original_language(data):
         if lang[0] not in important_languages:
             lang_data["other_languages"] += lang_data[lang[0]]
             lang_data = lang_data.drop(columns=[lang[0]])
+    for lang in important_languages:
+        if lang not in data.columns:
+            data[lang] = np.zeros(data.shape[0])
     data = pd.concat([data, lang_data], axis=1)
     data = data.drop(columns=["original_language"])
     return data
@@ -161,6 +164,9 @@ def parser_dicts(data):
     #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
     data = add_dummy(data, "production_companies")
+    for company in LEADING_20_COMPANIES:
+        if company not in data.columns:
+            data[company] = np.zeros(shape=data.shape[0])
     return data
 
 def pre_belongs_to_collection(data):
