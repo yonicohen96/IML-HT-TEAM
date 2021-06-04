@@ -143,11 +143,10 @@ def add_genres(data):
     data = data.drop(["genres"], axis=1)
     return data
 
+
 def parser_dicts(data):
-    #TODO - delete weak columns
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies"]
-    # TODO - production_countries, spoken_languages, keywords, cast, crew
     data = make_nan(data, cols1 + cols2)
     for col in cols1:
         data = parser_col_single(data, col)
@@ -161,14 +160,13 @@ def parser_dicts(data):
     data = add_genres(data)
 
     # create dummies based on "production_companies"
-    #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
     data = add_dummy(data, "production_companies")
     for company in LEADING_20_COMPANIES:
         if company not in data.columns:
             data["production_companies_" + company] = np.zeros(shape=data.shape[0])
-    print(data.columns)
     return data
+
 
 def pre_belongs_to_collection(data):
     num_rows = data.shape[0]
@@ -190,23 +188,6 @@ def pre_belongs_to_collection(data):
     data = data.drop(["belongs_to_collection"], axis=1)
     return data
 
-
-# Neria
-def preprocess_original_language(data):
-    # creating a row for every important language:
-    important_languages = ["en", "fr", "hi", "es", "ru", "ja"]
-    languages = data["original_language"].unique()
-    languages_count = data["original_language"].value_counts()
-    languages = np.column_stack((languages, languages_count))
-    lang_data = pd.get_dummies(data.original_language)
-    lang_data["other_languages"] = 0
-    for lang in languages:
-        if lang[0] not in important_languages:
-            lang_data["other_languages"] += lang_data[lang[0]]
-            lang_data = lang_data.drop(columns=[lang[0]])
-    data = pd.concat([data, lang_data], axis=1)
-    data = data.drop(columns=["original_language"])
-    return data
 
 # Toot
 def number_columns_preprocess(data):

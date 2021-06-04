@@ -34,7 +34,6 @@ def add_genres(data, col_name):
     mlb = MultiLabelBinarizer()
     encoded = mlb.fit_transform(data[col_name])
     names = [col_name + "_" + name for name in mlb.classes_]
-    print(names)
     #np.savetxt(r"data\genres_features.csv", names, delimiter=",")
     data = pd.concat([data, pd.DataFrame(encoded, columns=names, index=data.index)], axis=1)
     if "others" not in mlb.classes_:
@@ -128,7 +127,6 @@ def _get_leading_company(row):
 def parser_dicts(data):
     cols1 = ["belongs_to_collection"]
     cols2 = ["genres", "production_companies"]
-    # TODO - production_countries, spoken_languages, keywords, cast, crew
     data = make_nan(data, cols1 + cols2)
     for col in cols1:
         data = parser_col_single(data, col)
@@ -141,7 +139,6 @@ def parser_dicts(data):
     data = pre_belongs_to_collection(data)
     data = add_genres(data, "genres")
     # create dummies based on "production_companies"
-    #TODO check if works
     data["production_companies"] = data.apply(_get_leading_company, axis=1)
     data = add_dummy(data, "production_companies")
     return data

@@ -22,10 +22,7 @@ def predict(csv_file):
         predict_df = predict_df.drop(["revenue"], axis=1)
     if "vote_average" in predict_df.columns:
         predict_df = predict_df.drop(["vote_average"], axis=1)
-    print("before: " + str(predict_df.shape))
-    print(predict_df.columns)
     data = preprocess_predict.preprocess_main(predict_df)
-    np.array(data.columns)
     with open('models.pkl', 'rb') as file:
         revenue_model = pickle.load(file)
         vote_model = pickle.load(file)
